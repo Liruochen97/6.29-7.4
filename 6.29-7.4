@@ -1,0 +1,111 @@
+##基本数据管理
+##创建数据框 
+manager<-c(1,2,3,4,5)
+ date<-c("10/24/08","10/28/08","10/1/08","10/12/08","5/1/09")
+ country<-c("US","US","UK","UK","UK")
+ gender<-c("M","F","F","M","F")
+ age<-c(32,45,25,39,99)
+ q1<-c(5,3,3,3,2)
+ q2<-c(4,5,5,3,2)
+ q3<-c(5,2,5,4,1)
+ q4<-c(5,5,5,NA,2)
+ q5<-c(5,5,2,NA,1)
+ leadership<-data.frame(manager,date,country,gender,age,q1,q2,q3,q4,q5)
+##新建变量
+ mean<-transform(leadership,mean=(q1+q2+q3+q4+q5)/5,sum=(q1+q2+q3+q4+q5))
+##变量重编码
+leadership$age[leadership$age==99]<-NA
+leadership<-within(leadership,{agecat<-NA
+agecat[age>75]<-"Elder"
+agecat[age>=55&age<=75]<-"Middle aged"
+agecat[age<55]<-"Young"})
+is.na(age)##判断缺失值
+##计算前移除缺失值
+q<-c(2,3,2,5,1,NA,22)
+newmean<-data.frame(mean=mean(q,na.rm=TRUE),sum=sum(q,na.rm=TRUE))
+##排除含缺失值的观测
+newdata<-na.omit(leadership)
+##数据排序
+attach(leadership)
+new<-leadership[order(gender,-age),]##按性别升序，年龄降序排序
+detach(leadership)
+##向数据框添加行、列
+ID<-c(1,2,3,4,5)
+math<-c(50,60,70,75,90)
+chinese<-c(70,55,80,95,45)
+science<-c(55,69,70,85,60)
+english<-c(90,95,60,55,80)
+student<-data.frame(ID,math,chinese)
+data2<-data.frame(ID,science,english)
+total<-merge(student,data2,by="ID")
+##cbind()、nbind()分别为横纵向合并
+##选入变量
+part<-leadership[,c(6:10)]
+myvars<-c("q1","q2","q3","q4","q5")
+part2<-leadership[myvars]
+##丢弃变量
+part3<-leadership[c(-8,-9)]
+##选入观测
+attach(leadership)
+part4<-leadership[gender=="M"&age>30,]##选入性别为男，年龄30以上的观测
+detach(leadership)
+#####################################################################################################
+##高级数据管理
+##绘制-3到3的正态分布曲线
+x<-pretty(c(-3,3),30)
+y<-dnorm(x)
+plot(x,y,type="l")
+##生成5个种子为1的伪随机数
+set.seed(1)
+runif(5)
+##将函数应用于矩阵
+set.seed(2)
+a<-matrix(rnorm(40),nrow=4)
+b<-apply(a,1,mean,trim=0.1)##计算每行的截取中间80%数据的平均值，最后一个函数可自编
+##求学生成绩的等级
+name<-c("A","B","C","D","E")
+math<-c(500,607,412,368,473)
+science<-c(80,54,77,95,78)
+english<-c(2,3,1,4,5)
+chinese<-c(25,17,30,22,18)
+chengji<-data.frame(name,math,science,english,chinese,grade,stringsAsFactors=FALSE)
+c<-scale(chengji[,2:5])##标准化数据
+score<-apply(c,1,mean)##求标准化后的数据每行的平均值
+chengji<-cbind(chengji,score)
+d<-quantile(score,c(0.8,0.6,0.4,0.2))##求score0.8,0.6,0.4,0.2分位的值
+chengji$grade[score>=d[1]]<-"A"
+chengji$grade[score<d[1]&score>=d[2]]<-"B"
+chengji$grade[score<d[2]&score>=d[3]]<-"C"
+chengji$grade[score<d[3]&score>=d[4]]<-"D"
+chengji$grade[score<d[4]]<-"F"
+###############################################################################################
+##for、while循环、条件执行
+for(i in 1:10) print("hello")
+###################
+i<-12
+while(i>10) {print("hello");i<-i-1}
+########################
+a<-"a"
+if(is.character(a)) a<-as.factor(a)
+if(is.character(a)) print("OK!") else a<-as.character(a)
+##上一条语句等价为：
+ifelse(is.character(a)=TRUE,print("OK!") , a<-as.character(a))
+#######################################
+i<-c("1","2","3")
+for (a in i)
+print(switch(a, "1"="first" ,"3"="last"))
+##自编函数输出参数统计量(平均值，标准差)或非参数统计量（中位数，绝对标准差），运行时删除注释
+set.seed(22)
+x<-rnorm(500)
+cal<-function(x,can=TRUE,print=FALSE)
+{if(can) {a<-mean(x); b<-sd(x)}   
+ else {a<-median(x); b<-mad(x)}      ##默认返回参数统计量
+ if(can&print) {y<-cat("mean=",a,"\n","sd=",b,"\n")}
+  else if(!can&print) {y<-cat("meadian=",a,"\n","mad=",b,"\n")}   ##print为真时输出语句
+  result<-list(center=a,spread=b)
+  return(result)
+}
+y<-cal(x)
+y
+y<-cal(x,can=FALSE,print=TRUE) ##测试函数默认输出值及设定参数之后的输出值
+y
